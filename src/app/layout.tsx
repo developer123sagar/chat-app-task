@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import { Toaster } from "react-hot-toast";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
+import "@/styles/auth.css";
+import "@/styles/chat.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Real-time Chat App",
-  description: "A modern real-time chat application with WebSocket integration, message history, typing indicators, and more.",
+  title: "ChatSpace - Real-time Chat",
+  description:
+    "A modern real-time chat application with authentication, message persistence, and live presence tracking.",
 };
 
 export default function RootLayout({
@@ -28,7 +33,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryProvider>{children}</QueryProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+          }}
+        />
+        <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );
