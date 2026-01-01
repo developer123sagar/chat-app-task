@@ -3,6 +3,7 @@ import { Toaster } from "react-hot-toast";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { AuthProvider } from "@/context/AuthContext";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "./globals.css";
 import "@/styles/auth.css";
 import "@/styles/chat.css";
@@ -41,6 +42,8 @@ export default function RootLayout({
         />
         <QueryProvider>
           <AuthProvider>{children}</AuthProvider>
+
+          {/* <ReactQueryDevtools initialIsOpen={false} position="bottom" /> */}
         </QueryProvider>
       </body>
     </html>

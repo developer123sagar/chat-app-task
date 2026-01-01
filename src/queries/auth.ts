@@ -4,12 +4,18 @@ import {
   loginUser,
   signUpUser,
 } from "@/services/auth";
-import { TMutationOptions, TQueryOptions } from "@/types";
 import { AuthFormValues, UserData, UsersDataList } from "@/types/auth";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  UseMutationOptions,
+  useQuery,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 
 // get user info query
-export const useGetUserInfoQuery = (queryOptions?: TQueryOptions<UserData>) => {
+export const useGetUserInfoQuery = (
+  queryOptions?: Partial<UseQueryOptions<UserData, Error>>
+) => {
   return useQuery({
     queryKey: ["user-info"],
     queryFn: async () => {
@@ -22,7 +28,7 @@ export const useGetUserInfoQuery = (queryOptions?: TQueryOptions<UserData>) => {
 
 // get users list query
 export const useGetUsersListQuery = (
-  queryOptions?: TQueryOptions<UsersDataList>
+  queryOptions?: Partial<UseQueryOptions<UsersDataList, Error>>
 ) => {
   return useQuery({
     queryKey: ["users-list"],
@@ -36,7 +42,9 @@ export const useGetUsersListQuery = (
 
 export const useAuthMutation = (
   formMode: "login" | "signUp",
-  mutationOptions?: TMutationOptions<UserData, AuthFormValues>
+  mutationOptions?: Partial<
+    UseMutationOptions<UserData, unknown, AuthFormValues>
+  >
 ) => {
   return useMutation({
     mutationFn: async (payload) => {

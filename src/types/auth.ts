@@ -11,7 +11,7 @@ export type UserData = Prisma.UserGetPayload<{
     id: true;
     email: true;
     name: true;
-    avatar: true;
+    avatar?: true;
   };
 }>;
 

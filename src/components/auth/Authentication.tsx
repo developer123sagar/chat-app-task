@@ -49,7 +49,7 @@ export function AuthenticationPage() {
           isOnline: true,
         });
       },
-      onError: (error: any) => {
+      onError: (error) => {
         toast.error(error.response.data.error);
       },
     });

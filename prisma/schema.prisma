@@ -12,11 +12,10 @@ model User {
   email        String   @unique
   name         String
   passwordHash String
-  avatar       String?
+  avatar       String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  // relations
   sentMessages Message[] @relation("SentMessages")
 
   @@index([email])
@@ -30,7 +29,6 @@ model Message {
   status    String   @default("sent") // sent, delivered, read
   readBy    String[] @default([]) // array of user IDs who read the message
 
-  // relations
   sender User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([timestamp])
