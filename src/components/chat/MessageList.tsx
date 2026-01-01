@@ -65,6 +65,7 @@ export function MessageList({
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const prevMessageCountRef = useRef(messages.length);
   const prevTypingUsersRef = useRef(typingUsers.length);
+  const hasInitiallyScrolledRef = useRef(false);
   const isLoadingMoreRef = useRef(false);
 
   // sort messages by timestamp
@@ -77,12 +78,23 @@ export function MessageList({
 
   // scroll to bottom when new messages arrive OR when typing users change
   useEffect(() => {
+    if (isLoading) return;
+
     const messageCountIncreased = messages.length > prevMessageCountRef.current;
     const hasNewTypingUser = typingUsers.length > prevTypingUsersRef.current;
 
     // check if current user sent the last message
     const lastMessage = sortedMessages[sortedMessages.length - 1];
     const isOwnMessage = lastMessage?.senderId === currentUserId;
+
+    // handle initial scroll
+    if (messages.length > 0 && !hasInitiallyScrolledRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+      hasInitiallyScrolledRef.current = true;
+      prevMessageCountRef.current = messages.length;
+      prevTypingUsersRef.current = typingUsers.length;
+      return;
+    }
 
     // don't scroll if we're loading more messages (scroll up scenario)
     if (isLoadingMoreRef.current && messageCountIncreased) {
@@ -106,6 +118,7 @@ export function MessageList({
     prevTypingUsersRef.current = typingUsers.length;
   }, [
     messages.length,
+    isLoading,
     typingUsers.length,
     shouldAutoScroll,
     sortedMessages,
