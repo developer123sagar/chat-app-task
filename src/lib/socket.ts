@@ -4,39 +4,38 @@ import { User } from "@/types/chat";
 // internal state for socket and token
 let socket: Socket | null = null;
 let currentToken: string | null = null;
-const listeners: Map<string, ((...args: any) => void)[]> = new Map();
 
 // helper to setup default listeners
 const setupDefaultListeners = () => {
   if (!socket) return;
 
   socket.on("connect", () => {
-    console.log("✅ Socket connected:", socket?.id);
+    console.log("Socket connected:", socket?.id);
     // authenticate after connection if token is available
     if (currentToken) {
-      console.log("🔐 Authenticating...");
+      console.log("Authenticating...");
       socket?.emit("authenticate", currentToken);
     }
   });
 
   socket.on("disconnect", (reason) => {
-    console.log("❌ Socket disconnected:", reason);
+    console.log("Socket disconnected:", reason);
   });
 
   socket.on("error", (error) => {
-    console.error("⚠️ Socket error:", error);
+    console.error("Socket error:", error);
   });
 
   socket.on("connect_error", (error) => {
-    console.error("⚠️ Connection error:", error);
+    console.error("Connection error:", error);
   });
 
   socket.on("reconnecting", (attemptNumber) => {
-    console.log("🔄 Reconnecting... Attempt:", attemptNumber);
+    console.log("Reconnecting... Attempt:", attemptNumber);
   });
 
   socket.on("reconnect", (attemptNumber) => {
-    console.log("✅ Reconnected after", attemptNumber, "attempts");
+    console.log("Reconnected after", attemptNumber, "attempts");
   });
 };
 
@@ -60,7 +59,7 @@ export const connect = (token: string) => {
   if (!socket) initializeSocket();
   
   currentToken = token;
-  console.log("🔌 Connecting socket...");
+  console.log("Connecting socket...");
   if (socket && !socket.connected) {
     socket.connect();
   } else if (socket?.connected) {
@@ -70,18 +69,18 @@ export const connect = (token: string) => {
 };
 
 export const disconnect = () => {
-  console.log("🔌 Disconnecting socket...");
+  console.log("Disconnecting socket...");
   if (socket) {
     socket.disconnect();
   }
 };
 
 export const join = (user: User) => {
-  console.log("👤 User joined:", user.name);
+  console.log("User joined:", user.name);
 };
 
 export const leave = () => {
-  console.log("👋 Leaving...");
+  console.log("Leaving...");
 };
 
 export const sendMessage = (data: {
@@ -91,14 +90,14 @@ export const sendMessage = (data: {
   senderName: string;
 }) => {
   if (!socket?.connected) {
-    console.warn("⚠️ Socket not connected, cannot send message");
+    console.warn("Socket not connected, cannot send message");
     return;
   }
 
   const messageId =
     data.id || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  console.log("📤 Sending message:", data.content.substring(0, 50));
+  console.log("Sending message:", data.content.substring(0, 50));
 
   socket.emit("message", {
     id: messageId,

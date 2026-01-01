@@ -16,7 +16,7 @@ import {
 } from "@/lib/messageQueue";
 
 const MESSAGES_QUERY_KEY = ["messages"];
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 50;
 
 interface UseMessagesReturn {
   messages: Message[];
