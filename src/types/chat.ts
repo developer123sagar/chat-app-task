@@ -5,7 +5,7 @@ export interface Message {
   senderName?: string;
   senderAvatar?: string;
   timestamp: Date;
-  status: "sending" | "sent" | "delivered" | "read";
+  status: "sent" | "delivered" | "read";
 }
 
 export interface User {

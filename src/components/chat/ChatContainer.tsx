@@ -94,7 +94,7 @@ export function ChatContainer() {
         senderName: currentUser?.name,
         senderAvatar: currentUser?.avatar,
         timestamp: new Date(),
-        status: "sending",
+        status: "sent",
       };
 
       addMessage(payload);

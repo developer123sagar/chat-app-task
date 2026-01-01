@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { format, isToday, isYesterday } from "date-fns";
 import { Message } from "@/types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Check, CheckCheck, Clock } from "lucide-react";
+import { Check, CheckCheck } from "lucide-react";
 
 interface MessageItemProps {
   message: Message;
@@ -19,7 +19,6 @@ export function MessageItem({
   message,
   isOwn,
   showHeader,
-  isFirstInGroup,
   isLastInGroup,
 }: MessageItemProps) {
   const formattedTime = useMemo(() => {
@@ -32,9 +31,9 @@ export function MessageItem({
     return format(date, "MMM d, h:mm a");
   }, [message.timestamp]);
 
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string) => {
     return name
-      .split(" ")
+      ?.split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
@@ -43,8 +42,6 @@ export function MessageItem({
 
   const getStatusIcon = () => {
     switch (message.status) {
-      case "sending":
-        return <Clock size={12} className="message-bubble__status--sending" />;
       case "sent":
         return <Check size={12} className="message-bubble__status--sent" />;
       case "delivered":
