@@ -7,7 +7,6 @@ import { MessageItem } from "./MessageItem";
 import { TypingIndicator } from "./TypingIndicator";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ArrowDown } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface MessageListProps {
   messages: Message[];
@@ -18,13 +17,13 @@ interface MessageListProps {
   onLoadMore: () => void;
 }
 
-// Helper to determine if messages should be grouped
+// helper to determine if messages should be grouped
 const shouldGroupMessages = (
   currentMessage: Message,
   previousMessage: Message | null,
   nextMessage: Message | null
 ): { showHeader: boolean; isFirstInGroup: boolean; isLastInGroup: boolean } => {
-  const timeThreshold = 5 * 60 * 1000; // 5 minutes
+  const timeThreshold = 5 * 60 * 1000;
 
   const isSameSenderAsPrev =
     previousMessage && previousMessage.senderId === currentMessage.senderId;
@@ -65,8 +64,10 @@ export function MessageList({
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const prevMessageCountRef = useRef(messages.length);
+  const prevTypingUsersRef = useRef(typingUsers.length);
+  const isLoadingMoreRef = useRef(false);
 
-  // Sort messages by timestamp
+  // sort messages by timestamp
   const sortedMessages = useMemo(() => {
     return [...messages].sort(
       (a, b) =>
@@ -74,15 +75,50 @@ export function MessageList({
     );
   }, [messages]);
 
-  // Scroll to bottom when new messages arrive (if auto-scroll is enabled)
+  // scroll to bottom when new messages arrive OR when typing users change
   useEffect(() => {
-    if (shouldAutoScroll && messages.length > prevMessageCountRef.current) {
+    const messageCountIncreased = messages.length > prevMessageCountRef.current;
+    const hasNewTypingUser = typingUsers.length > prevTypingUsersRef.current;
+
+    // check if current user sent the last message
+    const lastMessage = sortedMessages[sortedMessages.length - 1];
+    const isOwnMessage = lastMessage?.senderId === currentUserId;
+
+    // don't scroll if we're loading more messages (scroll up scenario)
+    if (isLoadingMoreRef.current && messageCountIncreased) {
+      isLoadingMoreRef.current = false;
+      prevMessageCountRef.current = messages.length;
+      prevTypingUsersRef.current = typingUsers.length;
+      return;
+    }
+
+    if (shouldAutoScroll && messageCountIncreased) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (isOwnMessage && messageCountIncreased) {
+      // always scroll to bottom when current user sends a message
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (hasNewTypingUser) {
+      // scroll to bottom when someone starts typing
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-    prevMessageCountRef.current = messages.length;
-  }, [messages.length, shouldAutoScroll]);
 
-  // Handle scroll events to show/hide scroll-to-bottom button
+    prevMessageCountRef.current = messages.length;
+    prevTypingUsersRef.current = typingUsers.length;
+  }, [
+    messages.length,
+    typingUsers.length,
+    shouldAutoScroll,
+    sortedMessages,
+    currentUserId,
+  ]);
+
+  // handle load more
+  const handleLoadMoreClick = useCallback(() => {
+    isLoadingMoreRef.current = true;
+    onLoadMore();
+  }, [onLoadMore]);
+
+  // handle scroll events to show/hide scroll-to-bottom button
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
     const isNearBottom =
@@ -92,7 +128,7 @@ export function MessageList({
     setShouldAutoScroll(isNearBottom);
   }, []);
 
-  // Scroll to bottom function
+  // scroll to bottom function
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     setShouldAutoScroll(true);
@@ -116,7 +152,7 @@ export function MessageList({
             <Button
               variant="outline"
               size="sm"
-              onClick={onLoadMore}
+              onClick={handleLoadMoreClick}
               disabled={isLoading}
               className="gap-2"
             >
