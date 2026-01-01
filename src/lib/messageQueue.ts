@@ -1,11 +1,8 @@
-// Client-side message queue for batching messages before sending to API
-// Reduces API calls by collecting messages and flushing periodically
-
 interface QueuedMessage {
   id: string;
   content: string;
-  senderId: string;
-  senderName: string;
+  senderId?: string;
+  senderName?: string;
   timestamp: Date;
   status: string;
 }
@@ -64,7 +61,7 @@ class MessageQueue {
     try {
       await this.onFlush(messagesToFlush);
     } catch (error) {
-      console.error('Failed to flush message queue:', error);
+      console.error("Failed to flush message queue:", error);
       // On error, put messages back in queue for retry
       this.queue = [...messagesToFlush, ...this.queue];
     } finally {
