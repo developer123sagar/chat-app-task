@@ -185,6 +185,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         currentUser
       ) {
         socketRef.current.sendMessage({
+          id: messageId,
           content,
           senderId: currentUser.id,
           senderName: currentUser.name,

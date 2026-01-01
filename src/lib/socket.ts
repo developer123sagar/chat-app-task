@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { io, Socket } from "socket.io-client";
 import { User } from "@/types/chat";
 
@@ -77,15 +78,19 @@ export class SocketClient {
     console.log("👋 Leaving...");
   }
 
-  sendMessage(data: { content: string; senderId: string; senderName: string }) {
+  sendMessage(data: {
+    id?: string;
+    content: string;
+    senderId: string;
+    senderName: string;
+  }) {
     if (!this.socket?.connected) {
       console.warn("⚠️ Socket not connected, cannot send message");
       return;
     }
 
-    const messageId = `msg-${Date.now()}-${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
+    const messageId =
+      data.id || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     console.log("📤 Sending message:", data.content.substring(0, 50));
 
@@ -114,11 +119,11 @@ export class SocketClient {
   }
 
   // Event listener methods
-  on(event: string, callback: (...args: any[]) => void) {
+  on(event: string, callback: (...args: any) => void) {
     this.socket?.on(event, callback);
   }
 
-  off(event: string, callback?: (...args: any[]) => void) {
+  off(event: string, callback?: (...args: any) => void) {
     if (callback) {
       this.socket?.off(event, callback);
     } else {
