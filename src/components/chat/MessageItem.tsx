@@ -68,12 +68,6 @@ export function MessageItem({
     >
       {showHeader && !isOwn && (
         <div className="message-group-header">
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={message.senderAvatar} alt={message.senderName} />
-            <AvatarFallback className="text-[10px]">
-              {getInitials(message.senderName)}
-            </AvatarFallback>
-          </Avatar>
           <span className="message-group__sender">{message.senderName}</span>
         </div>
       )}
