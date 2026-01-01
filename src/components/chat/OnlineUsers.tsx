@@ -18,7 +18,7 @@ export function OnlineUsers({
   currentUserId,
   currentUser,
 }: OnlineUsersProps) {
-  // Separate online and offline users
+  // separate online and offline users
   const onlineUsers = users.filter(
     (user) => user.isOnline && user.id !== currentUserId
   );
@@ -103,7 +103,7 @@ export function OnlineUsers({
         </p>
       </div>
       <ScrollArea className="user-list">
-        {/* Current user first */}
+        {/* current user first */}
         <div
           style={{
             marginBottom: "1rem",
@@ -114,14 +114,14 @@ export function OnlineUsers({
           {renderUserItem(currentUser, 0, true)}
         </div>
 
-        {/* Other online users */}
+        {/* other online users */}
         {onlineUsers.length > 0 && (
           <div style={{ marginBottom: offlineUsers.length > 0 ? "1rem" : "0" }}>
             {onlineUsers.map((user, index) => renderUserItem(user, index + 1))}
           </div>
         )}
 
-        {/* Offline users */}
+        {/* offline users */}
         {offlineUsers.length > 0 && (
           <div>
             <div
@@ -140,7 +140,7 @@ export function OnlineUsers({
           </div>
         )}
 
-        {/* Empty state - only show if no other users at all */}
+        {/* empty state - only show if no other users at all */}
         {onlineUsers.length === 0 && offlineUsers.length === 0 && (
           <div
             style={{

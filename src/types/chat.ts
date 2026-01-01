@@ -36,13 +36,13 @@ export interface MessagePayload {
 }
 
 export interface SocketEvents {
-  // Client -> Server
+  // client -> server
   sendMessage: (payload: MessagePayload) => void;
   typing: (isTyping: boolean) => void;
   join: (user: User) => void;
   leave: () => void;
 
-  // Server -> Client
+  // server -> client
   message: (message: Message) => void;
   messageConfirmed: (messageId: string) => void;
   userTyping: (user: TypingUser) => void;

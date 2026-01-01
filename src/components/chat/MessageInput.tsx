@@ -29,7 +29,7 @@ export function MessageInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-resize textarea
+  // auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -40,26 +40,26 @@ export function MessageInput({
     }
   }, [message]);
 
-  // Handle typing indicator
+  // handle typing indicator
   const handleTyping = useCallback(() => {
     if (!isTyping) {
       setIsTyping(true);
       onTyping(true);
     }
 
-    // Clear existing timeout
+    // clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Set timeout to stop typing indicator after 2 seconds of inactivity
+    // set timeout to stop typing indicator after 2 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
       onTyping(false);
     }, 2000);
   }, [isTyping, onTyping]);
 
-  // Clean up timeout on unmount
+  // clean up timeout on unmount
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
@@ -80,7 +80,7 @@ export function MessageInput({
         clearTimeout(typingTimeoutRef.current);
       }
 
-      // Reset textarea height
+      // reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }

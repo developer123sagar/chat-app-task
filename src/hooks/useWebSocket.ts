@@ -1,10 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { getSocket, SocketClient } from "@/lib/socket";
+import {
+  connect,
+  disconnect,
+  join,
+  leave,
+  sendMessage as socketSendMessage,
+  sendTyping as socketSendTyping,
+  on,
+  off,
+  simulateDisconnect as socketSimulateDisconnect,
+} from "@/lib/socket";
 import { Message, User, TypingUser } from "@/types/chat";
-import { apiClient } from "@/lib/api";
+import { getToken } from "@/lib/api";
 
 export type ConnectionStatus = "connected" | "disconnected" | "reconnecting";
 
@@ -44,7 +54,6 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
 
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
-  const socketRef = useRef<SocketClient | null>(null);
   const messageQueueRef = useRef<string[]>([]);
 
   // store latest callbacks in refs to avoid re-registering listeners
@@ -76,16 +85,13 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       return;
     }
 
-    const token = apiClient.getToken();
+    const token = getToken();
     if (!token) {
       return;
     }
 
-    const socket = getSocket();
-    socketRef.current = socket;
-
     // connect with JWT token
-    socket.connect(token);
+    connect(token);
 
     // define event handlers that use refs
     const handleConnect = () => {
@@ -94,7 +100,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
 
       // send queued messages after reconnection
       messageQueueRef.current.forEach((msg) => {
-        socket.sendMessage({
+        socketSendMessage({
           content: msg,
           senderId: currentUser.id,
           senderName: currentUser.name,
@@ -103,7 +109,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       messageQueueRef.current = [];
 
       // join the chat with authenticated user
-      socket.join(currentUser);
+      join(currentUser);
     };
 
     const handleDisconnect = () => {
@@ -144,33 +150,33 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       onUserListRef.current?.(users);
     };
 
-    // Set up event listeners
-    socket.on("connect", handleConnect);
-    socket.on("disconnect", handleDisconnect);
-    socket.on("reconnecting", handleReconnecting);
-    socket.on("message", handleMessage);
-    socket.on("messageConfirmed", handleMessageConfirmed);
-    socket.on("userTyping", handleUserTyping);
-    socket.on("userStoppedTyping", handleUserStoppedTyping);
-    socket.on("userJoined", handleUserJoined);
-    socket.on("userLeft", handleUserLeft);
-    socket.on("userList", handleUserList);
+    // set up event listeners
+    on("connect", handleConnect);
+    on("disconnect", handleDisconnect);
+    on("reconnecting", handleReconnecting);
+    on("message", handleMessage);
+    on("messageConfirmed", handleMessageConfirmed);
+    on("userTyping", handleUserTyping);
+    on("userStoppedTyping", handleUserStoppedTyping);
+    on("userJoined", handleUserJoined);
+    on("userLeft", handleUserLeft);
+    on("userList", handleUserList);
 
     // cleanup - remove all event listeners
     return () => {
-      socket.off("connect", handleConnect);
-      socket.off("disconnect", handleDisconnect);
-      socket.off("reconnecting", handleReconnecting);
-      socket.off("message", handleMessage);
-      socket.off("messageConfirmed", handleMessageConfirmed);
-      socket.off("userTyping", handleUserTyping);
-      socket.off("userStoppedTyping", handleUserStoppedTyping);
-      socket.off("userJoined", handleUserJoined);
-      socket.off("userLeft", handleUserLeft);
-      socket.off("userList", handleUserList);
+      off("connect", handleConnect);
+      off("disconnect", handleDisconnect);
+      off("reconnecting", handleReconnecting);
+      off("message", handleMessage);
+      off("messageConfirmed", handleMessageConfirmed);
+      off("userTyping", handleUserTyping);
+      off("userStoppedTyping", handleUserStoppedTyping);
+      off("userJoined", handleUserJoined);
+      off("userLeft", handleUserLeft);
+      off("userList", handleUserList);
 
-      socket.leave();
-      socket.disconnect();
+      leave();
+      disconnect();
     };
   }, [currentUser]);
 
@@ -181,17 +187,16 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
 
       if (
         connectionStatus === "connected" &&
-        socketRef.current &&
         currentUser
       ) {
-        socketRef.current.sendMessage({
+        socketSendMessage({
           id: messageId,
           content,
           senderId: currentUser.id,
           senderName: currentUser.name,
         });
       } else {
-        // Queue message for later
+        // queue message for later
         messageQueueRef.current.push(content);
       }
 
@@ -200,35 +205,35 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     [connectionStatus, currentUser]
   );
 
-  // Send typing indicator
+  // send typing indicator
   const sendTyping = useCallback((isTyping: boolean) => {
-    socketRef.current?.sendTyping(isTyping);
+    socketSendTyping(isTyping);
   }, []);
 
-  // Disconnect
-  const disconnect = useCallback(() => {
-    socketRef.current?.disconnect();
+  // disconnect
+  const disconnectCb = useCallback(() => {
+    disconnect();
   }, []);
 
-  // Reconnect
-  const reconnect = useCallback(() => {
-    const token = apiClient.getToken();
-    if (token && socketRef.current) {
-      socketRef.current.connect(token);
+  // reconnect
+  const reconnectCb = useCallback(() => {
+    const token = getToken();
+    if (token) {
+      connect(token);
     }
   }, []);
 
-  // Simulate disconnect (for testing)
+  // simulate disconnect (for testing)
   const simulateDisconnect = useCallback(() => {
-    socketRef.current?.simulateDisconnect();
+    socketSimulateDisconnect();
   }, []);
 
   return {
     connectionStatus,
     sendMessage,
     sendTyping,
-    disconnect,
-    reconnect,
+    disconnect: disconnectCb,
+    reconnect: reconnectCb,
     simulateDisconnect,
   };
 }

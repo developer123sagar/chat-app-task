@@ -7,87 +7,93 @@ interface QueuedMessage {
   status: string;
 }
 
-class MessageQueue {
-  private queue: QueuedMessage[] = [];
-  private flushTimer: NodeJS.Timeout | null = null;
-  private readonly BATCH_SIZE = 10;
-  private readonly FLUSH_INTERVAL = 5000; // 5 seconds
-  private isFlushing = false;
+export type FlushCallback = (messages: QueuedMessage[]) => Promise<void>;
 
-  constructor(private onFlush: (messages: QueuedMessage[]) => Promise<void>) {}
+export const createMessageQueue = (onFlush: FlushCallback) => {
+  let queue: QueuedMessage[] = [];
+  let flushTimer: NodeJS.Timeout | null = null;
+  const BATCH_SIZE = 10;
+  const FLUSH_INTERVAL = 5000; // 5 seconds
+  let isFlushing = false;
 
-  // Add message to queue
-  queueMessage(message: QueuedMessage): void {
-    this.queue.push(message);
-
-    // Flush if batch size reached
-    if (this.queue.length >= this.BATCH_SIZE) {
-      this.flush();
-    } else {
-      // Reset flush timer
-      this.resetFlushTimer();
-    }
-  }
-
-  // Reset the flush timer
-  private resetFlushTimer(): void {
-    if (this.flushTimer) {
-      clearTimeout(this.flushTimer);
-    }
-
-    this.flushTimer = setTimeout(() => {
-      this.flush();
-    }, this.FLUSH_INTERVAL);
-  }
-
-  // Flush queue to API
-  async flush(): Promise<void> {
-    if (this.isFlushing || this.queue.length === 0) {
+  // flush queue to API
+  const flush = async (): Promise<void> => {
+    if (isFlushing || queue.length === 0) {
       return;
     }
 
-    this.isFlushing = true;
+    isFlushing = true;
 
-    // Clear timer
-    if (this.flushTimer) {
-      clearTimeout(this.flushTimer);
-      this.flushTimer = null;
+    // clear timer
+    if (flushTimer) {
+      clearTimeout(flushTimer);
+      flushTimer = null;
     }
 
-    // Take all messages from queue
-    const messagesToFlush = [...this.queue];
-    this.queue = [];
+    // take all messages from queue
+    const messagesToFlush = [...queue];
+    queue = [];
 
     try {
-      await this.onFlush(messagesToFlush);
+      await onFlush(messagesToFlush);
     } catch (error) {
       console.error("Failed to flush message queue:", error);
-      // On error, put messages back in queue for retry
-      this.queue = [...messagesToFlush, ...this.queue];
+      // on error, put messages back in queue for retry
+      queue = [...messagesToFlush, ...queue];
     } finally {
-      this.isFlushing = false;
+      isFlushing = false;
 
-      // If there are still messages, restart timer
-      if (this.queue.length > 0) {
-        this.resetFlushTimer();
+      // if there are still messages, restart timer
+      if (queue.length > 0) {
+        resetFlushTimer();
       }
     }
-  }
+  };
 
-  // Force flush (e.g., on page unload)
-  async forceFlush(): Promise<void> {
-    await this.flush();
-  }
-
-  // Clear queue
-  clear(): void {
-    this.queue = [];
-    if (this.flushTimer) {
-      clearTimeout(this.flushTimer);
-      this.flushTimer = null;
+  // reset the flush timer
+  const resetFlushTimer = (): void => {
+    if (flushTimer) {
+      clearTimeout(flushTimer);
     }
-  }
-}
 
-export { MessageQueue };
+    flushTimer = setTimeout(() => {
+      flush();
+    }, FLUSH_INTERVAL);
+  };
+
+  // add message to queue
+  const queueMessage = (message: QueuedMessage): void => {
+    queue.push(message);
+
+    // flush if batch size reached
+    if (queue.length >= BATCH_SIZE) {
+      flush();
+    } else {
+      // reset flush timer
+      resetFlushTimer();
+    }
+  };
+
+  // force flush (e.g., on page unload)
+  const forceFlush = async (): Promise<void> => {
+    await flush();
+  };
+
+  // clear queue
+  const clear = (): void => {
+    queue = [];
+    if (flushTimer) {
+      clearTimeout(flushTimer);
+      flushTimer = null;
+    }
+  };
+
+  return {
+    queueMessage,
+    forceFlush,
+    clear,
+  };
+};
+
+export type MessageQueueInstance = ReturnType<typeof createMessageQueue>;
 export type { QueuedMessage };

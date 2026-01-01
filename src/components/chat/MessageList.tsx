@@ -141,7 +141,7 @@ export function MessageList({
         className="message-list"
         onScroll={handleScroll}
       >
-        {/* Load more button */}
+        {/* load more button */}
         {hasMoreMessages && (
           <motion.div
             className="message-list__load-more"
@@ -169,7 +169,7 @@ export function MessageList({
           </motion.div>
         )}
 
-        {/* Messages */}
+        {/* messages */}
         <AnimatePresence mode="popLayout">
           {sortedMessages.map((message, index) => {
             const prevMessage = sortedMessages[index - 1] || null;
@@ -193,18 +193,18 @@ export function MessageList({
           })}
         </AnimatePresence>
 
-        {/* Typing indicator */}
+        {/* typing indicator */}
         <AnimatePresence>
           {typingUsers.length > 0 && (
             <TypingIndicator typingUsers={typingUsers} />
           )}
         </AnimatePresence>
 
-        {/* Scroll anchor */}
+        {/* scroll anchor */}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Scroll to bottom button */}
+      {/* scroll to bottom button */}
       <AnimatePresence>
         {showScrollToBottom && (
           <motion.div
